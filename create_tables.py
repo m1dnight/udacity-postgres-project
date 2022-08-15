@@ -60,7 +60,8 @@ def main():
     """
     cur, conn = create_database()
     
-    drop_tables(cur, conn)
+    # This can never work because the db is destroyed in the previous line.
+    # drop_tables(cur, conn)
     create_tables(cur, conn)
 
     conn.close()
