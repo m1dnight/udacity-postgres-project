@@ -10,11 +10,11 @@ time_table_drop = "DROP TABLE time;"
 
 songplay_table_create = ("""
 CREATE TABLE IF NOT EXISTS songplays 
-(songplay_id int, start_time varchar, user_id int, level int, song_id varchar, artist_id varchar, session_id int, location varchar, user_agent varchar);
+(songplay_id int, start_time varchar, user_id int, level varchar, song_id varchar, artist_id varchar, session_id int, location varchar, user_agent varchar);
 """)
 
 user_table_create = ("""
-CREATE TABLE IF NOT EXISTS users (user_id int, first_name varchar, last_name varchar, gender varchar, level int);
+CREATE TABLE IF NOT EXISTS users (user_id int, first_name varchar, last_name varchar, gender varchar, level varchar);
 """)
 
 song_table_create = ("""
@@ -36,7 +36,7 @@ INSERT INTO songplays (songplay_id, start_time, user_id, level, song_id, artist_
 """)
 
 user_table_insert = ("""
-INSERT INTO songplays (user_id, first_name, last_name, gender, level) VALUES (%s, %s, %s, %s, %s);
+INSERT INTO users (user_id, first_name, last_name, gender, level) VALUES (%s, %s, %s, %s, %s);
 """)
 
 song_table_insert = ("""
