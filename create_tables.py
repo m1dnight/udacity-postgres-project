@@ -60,7 +60,8 @@ def main():
     """
     cur, conn = create_database()
     
-    # This can never work because the db is destroyed in the previous line.
+    # This can never work because the db is destroyed if it existed in create_database.
+    # The database never contains any tables at this point.
     # drop_tables(cur, conn)
     create_tables(cur, conn)
 
