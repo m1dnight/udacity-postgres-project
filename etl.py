@@ -1,18 +1,24 @@
 import glob
 import os
 from datetime import datetime
-
+import numpy
 import pandas
 import pandas as pd
 import psycopg2
-
 from sql_queries import *
 
 
 def process_song_file(cur, filepath):
+    """Processes a song file from data/song_data by parsing it from JSON. 
+    Inserts records into artist table and song table. 
+
+    cur     : database cursor
+    filepath: path to the json file.
+    """
     # open song file
     df = pd.read_json(filepath, lines=True)
-    # df = df.replace({numpy.nan: None})  # replace nulls in long/lats that are missing.
+    df = df.replace({numpy.nan: None})  # replace nulls in long/lats that are missing.
+    df = df.replace({numpy.empty: None})  # replace nulls in long/lats that are missing.
     # insert song record
     song_data = df[['song_id', 'title', 'artist_id', 'year', 'duration']].values[0].tolist()
     cur.execute(song_table_insert, song_data)
@@ -22,12 +28,14 @@ def process_song_file(cur, filepath):
     cur.execute(artist_table_insert, artist_data)
 
 
-def millis_to_datetime(millis):
-    return datetime.datetime.fromtimestamp(millis / 1000)
-
-
 # noinspection PyPackageRequirements
 def process_log_file(cur, filepath):
+    """Processes a log file from the data/log_data directory by parsing it from JSON. 
+    Inserts records into the time, user, and songplay table.
+
+    cur     : database cursor
+    filepath: path to the json file.
+    """
     # open log file
     df = pd.read_json(filepath, lines=True)
 
