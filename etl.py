@@ -31,6 +31,8 @@ def process_artists(cur, df):
     :param cur: database cursor.
     :param df: Dataframe containing artist data.
     """
+    # If the location is the empty string, replace with None.
+    df["artist_location"].replace({"": None}, inplace=True)
     artist_data = df[['artist_id', 'artist_name', 'artist_location', 'artist_latitude', 'artist_longitude']].values[0].tolist()
     cur.execute(artist_table_insert, artist_data)
 
@@ -41,6 +43,9 @@ def process_songs(cur, df):
     :param cur: database cursor.
     :param df: Dataframe containing song data.
     """
+    # If the year is 0, replace it with None. 
+    # 0 makes no sense for a year.
+    df["year"].replace({0: None}, inplace=True)
     song_data = df[['song_id', 'title', 'artist_id', 'year', 'duration']].values[0].tolist()
     cur.execute(song_table_insert, song_data)
 
