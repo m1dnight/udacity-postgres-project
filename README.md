@@ -16,13 +16,13 @@ Note: this project has not been tested under Windows, only WSL.
 └── test.ipynb
 ```
 
-`data` contains the log files to import in this project. 
-`create_tables.py` sets up the database.
-`docker-compose.yaml` creates a local Postgres database.
-`etl.ipynb` is a notebook to play with queries. 
-`etl.py` process the data and stores in the database.
-`sql_queries.py` defines the queries used by `etl.py`.
-`test.ipynb` runs some simple tests on the database to check the data.
+ - `data` contains the log files to import in this project. 
+ - `create_tables.py` sets up the database.
+ - `docker-compose.yaml` creates a local Postgres database.
+ - `etl.ipynb` is a notebook to play with queries. 
+ - `etl.py` process the data and stores in the database.
+ - `sql_queries.py` defines the queries used by `etl.py`.
+ - `test.ipynb` runs some simple tests on the database to check the data.
 
 # Running The Code 
 
