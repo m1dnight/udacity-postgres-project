@@ -2,6 +2,7 @@
 
 This repository contains the solution to Christophe De Troyer's Postgres project for the course "Data Engineer". 
 
+Note: this project has not been tested under Windows, only WSL.
 ```
 .
 ├── README.md
