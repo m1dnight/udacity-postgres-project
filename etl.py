@@ -1,10 +1,11 @@
 import glob
 import os
-from datetime import datetime
+
 import numpy
 import pandas
 import pandas as pd
 import psycopg2
+
 from sql_queries import *
 
 
@@ -12,67 +13,60 @@ def process_song_file(cur, filepath):
     """Processes a song file from data/song_data by parsing it from JSON. 
     Inserts records into artist table and song table. 
 
-    cur     : database cursor
-    filepath: path to the json file.
+    :param cur: database cursor.
+    :param filepath: path to the json file.
     """
     # open song file
     df = pd.read_json(filepath, lines=True)
     df = df.replace({numpy.nan: None})  # replace nulls in long/lats that are missing.
     df = df.replace({numpy.empty: None})  # replace nulls in long/lats that are missing.
-    # insert song record
-    song_data = df[['song_id', 'title', 'artist_id', 'year', 'duration']].values[0].tolist()
-    cur.execute(song_table_insert, song_data)
+    process_songs(cur, df)
+    process_artists(cur, df)
 
-    # insert artist record
+
+def process_artists(cur, df):
+    """
+    Processes a dataframe with artist data.
+
+    :param cur: database cursor.
+    :param df: Dataframe containing artist data.
+    """
     artist_data = df[['artist_id', 'artist_name', 'artist_location', 'artist_latitude', 'artist_longitude']].values[0].tolist()
     cur.execute(artist_table_insert, artist_data)
 
 
-# noinspection PyPackageRequirements
-def process_log_file(cur, filepath):
-    """Processes a log file from the data/log_data directory by parsing it from JSON. 
-    Inserts records into the time, user, and songplay table.
-
-    cur     : database cursor
-    filepath: path to the json file.
+def process_songs(cur, df):
     """
-    # open log file
-    df = pd.read_json(filepath, lines=True)
+    Processes a song dataframe.
+    :param cur: database cursor.
+    :param df: Dataframe containing song data.
+    """
+    song_data = df[['song_id', 'title', 'artist_id', 'year', 'duration']].values[0].tolist()
+    cur.execute(song_table_insert, song_data)
 
-    # filter by NextSong action
-    log_data = df.loc[df['page'] == "NextSong"]
 
-    # convert timestamp column to datetime
-    # t is a Series of timestamps.
-    t = pandas.to_datetime(log_data['ts'], unit='ms')
-
-    # insert time data records (https://knowledge.udacity.com/questions/403616)
-    # time_data is a list of lists, where the first list is the timestamp value, second is the hour, etc.
-    time_data = [t,
-                 t.dt.hour,
-                 t.dt.day,
-                 t.dt.isocalendar().week,
-                 t.dt.month,
-                 t.dt.year,
-                 t.dt.dayofweek]
-
-    column_labels = ['ts', 'hour', 'day', 'week', 'month', 'year', 'dayofweek']
-    time_df = pandas.DataFrame(dict(zip(column_labels, time_data)))
-
-    for i, row in time_df.iterrows():
-        cur.execute(time_table_insert, list(row))
-
+def process_users(cur, df):
+    """
+    Processes a user dataframe.
+    :param cur: a database cursor
+    :param df: Dataframe containing user data.
+    """
     # load user table
-    user_df = log_data[['userId', 'firstName', 'lastName', 'gender', 'level']]
-
+    user_df = df[['userId', 'firstName', 'lastName', 'gender', 'level']]
     # insert user records
     for i, row in user_df.iterrows():
         if row[0] != '':
             cur.execute(user_table_insert, row)
 
-    # insert songplay records
-    for index, row in log_data.iterrows():
 
+def process_songplays(cur, df):
+    """
+    Processes a songplay dataframe.
+    :param cur: database cursor.
+    :param df: Dataframe containing songplay events.
+    """
+    # insert songplay records
+    for index, row in df.iterrows():
         # get songid and artistid from song and artist tables
         cur.execute(song_select, (row.song, row.artist, row.length))
         results = cur.fetchone()
@@ -85,6 +79,60 @@ def process_log_file(cur, filepath):
         # insert songplay record
         songplay_data = (row.ts, row.userId, row.level, songid, artistid, row.sessionId, row.location, row.userAgent)
         cur.execute(songplay_table_insert, songplay_data)
+
+
+# noinspection PyPackageRequirements
+def process_log_file(cur, filepath):
+    """Processes a log file from the data/log_data directory by parsing it from JSON. 
+    Inserts records into the time, user, and songplay table.
+
+    cur     : database cursor
+    filepath: path to the json file.
+    """
+    # open log file
+    df = log_to_json(filepath)
+
+    # filter by NextSong action
+    log_data = df.loc[df['page'] == "NextSong"]
+
+    process_times(cur, log_data)
+    process_users(cur, log_data)
+    process_songplays(cur, log_data)
+
+
+def process_times(cur, df):
+    """
+    Processes time logs.
+    :param cur: database cursor
+    :param df: Dataframe that contains logs wth timestamps.
+    """
+    # convert timestamp column to datetime
+    # t is a Series of timestamps.
+    t = pandas.to_datetime(df['ts'], unit='ms')
+    # insert time data records (https://knowledge.udacity.com/questions/403616)
+    # time_data is a list of lists, where the first list is the timestamp value, second is the hour, etc.
+    time_data = [t,
+                 t.dt.hour,
+                 t.dt.day,
+                 t.dt.isocalendar().week,
+                 t.dt.month,
+                 t.dt.year,
+                 t.dt.dayofweek]
+    column_labels = ['ts', 'hour', 'day', 'week', 'month', 'year', 'dayofweek']
+
+    time_df = pandas.DataFrame(dict(zip(column_labels, time_data)))
+    for i, row in time_df.iterrows():
+        cur.execute(time_table_insert, list(row))
+
+
+def log_to_json(filepath):
+    """
+    Parses a log file into a dataframe.
+    :param filepath: Path to json file.
+    :return: A dataframe.
+    """
+    df = pd.read_json(filepath, lines=True)
+    return df
 
 
 def process_data(cur, conn, filepath, func):
