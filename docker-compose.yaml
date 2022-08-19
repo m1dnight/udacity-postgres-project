@@ -9,16 +9,3 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
        - 127.0.0.1:5432:5432
-  cassandra:
-    image: cassandra
-    restart: always
-    ports:
-       - 127.0.0.1:9042:9042
-       - 127.0.0.1:9160:9160
-  jupyter:
-    image: jupyter/scipy-notebook
-    restart: always
-    volumes:
-       - .:/home/jovyan/work
-    ports:
-       - 127.0.0.1:8080:8080
